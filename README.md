@@ -519,7 +519,7 @@
 
 Ну, и финальная демонстрация!
 
-![](assets/flipper_hello_world.mp4)
+[![](https://img.youtube.com/vi/d8QXtE0Nidg/0.jpg)](https://youtu.be/d8QXtE0Nidg)
 
 > **NB** Полный код этого раздела доступен в [6_notifications](6_notifications/)
 
