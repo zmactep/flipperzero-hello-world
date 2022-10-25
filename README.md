@@ -62,7 +62,7 @@
     Failed building build/f7-firmware-D/sdk_origin.i: Error 1
 
 Написание [issue](https://github.com/flipperdevices/flipperzero-firmware/issues/1918) на github репозитории официальной прошивки привело к ответу через 12 минут:
-![](__GHOST_URL__/content/images/2022/10/image.png)Быстрое и отзывчивое коммьюнити!
+![](assets/image.png)
 Действительно, перезапуск `fbt` решает проблему:
 
     $ ./fbt
@@ -110,8 +110,10 @@
 
 ## Создание приложения
 
+> **NB** Полный код этого раздела доступен в [1_basic_app](1_basic_app/)
+
 Канонический способ создания новых приложений — это размещение их в директории `applications_user`.
-![](__GHOST_URL__/content/images/2022/10/image-1.png)Вот здесь
+![](assets/image-1.png)
 Сначала создадим простейшее приложение, которое будет компилироваться. Делать оно, правда, пока ничего не будет. Но и это мы полечим.
 
 Создадим директорию приложения, конечно же, `hello_world`, а в ней заведем три файла:
@@ -121,7 +123,7 @@
 - Иконка приложения — ч/б PNG размером 10x10 px (`hello_world.png`).
 
 Как всегда, самое сложное — это иконка, так что дарю.
-![](__GHOST_URL__/content/images/2022/10/hello_world.png)hello_world.png
+![](1_basic_app/hello_world.png)
 Теперь разберемся с кодом. По соглашениям Flipper Zero точкой входа является функция, которая будет называться как наше приложение + суффикс *`app`. Традиционно для C функция будет возвращать код ошибки (0 — все круто), а принимать некоторые данные по указателю. Данные нам не потребуются, так что код с инклудом для *`*int32_*t` будет выглядеть так:
 
     #include <stdio.h>
@@ -130,7 +132,6 @@
     	return 0;
     }
 
-hello_world.c
 Этот гениальный код, к сожалению не скомпирируется, поскольку в проекте по умолчанию включены довольно жесткие правила, а потому любой warning воспринимается как ошибка. Решить эту проблему можно сделав вид, что данные мы все же используем:
 
     #include <stdio.h>
@@ -141,7 +142,6 @@ hello_world.c
       return 0;
     }
 
-hello_world.c
 Отлично, теперь осталось составить только манифест, с помощью которого волшебный `fbt` поймет, что мы делаем новое приложение. О том, как устроен этот файл даже есть [какая-никакая документация](https://github.com/flipperdevices/flipperzero-firmware/blob/dev/documentation/AppManifests.md), из которой мы можем почерпнуть следующее:
 
 - В поле `appid` нужно указать какое-то уникальное имя без пробелов, по которому `fbt` будет собирать наше приложение.
@@ -168,7 +168,6 @@ hello_world.c
         fap_category="Misc",
     )
 
-application.fam
 Все, мы можем собирать наше приложение. Делается это командой:
 
     $ ./fbt fap_{APPID НАШЕГО ПРИЛОЖЕНИЯ}
@@ -185,14 +184,18 @@ application.fam
             APPCHK  build/f7-firmware-D/.extapps/hello_world.fap
 
 И все! В папке `build/f7-firmware-D/.extapps` теперь лежит наш FAP-файл, который можно любым удобным вам способом закинуть на Flipper. Я пользовался qFlipper:
-![](__GHOST_URL__/content/images/2022/10/image-3.png)
+![](assets/image-3.png)
 > **UPDATE**. Продвинутые ребята не дрыгают мышкой, а и такие операции делают через `fbt` из консоли или Visual Studio Code. Ловите команду: `./fbt launch_app APPSRC=hello_world`.
 
 После этого приложение появится в списке в искомой папке:
-![](__GHOST_URL__/content/images/2022/10/Screenshot-20221024-224504.png)
+![](assets/Screenshot-20221024-224504.png)
 Запуск приложения не будет приводить ни к каким ошибкам, функция честно исполнится, и приложение тут же завершится. Но это явно не то, ради чего мы тут собрались, так что погрузимся в мелководье организации приложений, которые я уяснил за пару часов ковыряния.
 
+> **NB** Полный код этого раздела доступен в [1_basic_app](1_basic_app/)
+
 ## Очередь сообщений
+
+> **NB** Полный код этого раздела доступен в [2_msgqueue](2_msgqueue/)
 
 Как и очень многие графические фреймворки, Flipper организует работу через очередь сообщений. На практике это выглядит примерно так:
 
@@ -208,7 +211,6 @@ application.fam
     
     очисти_очередь(ОЧЕРЕДЬ_СООБЩЕНИЙ)
 
-Прямо вспомнил, как 15 лет назад писал на WinAPI32...
 Для того, чтоб использовать такой функционал нам уже не обойтись одним только `stdio.h`, а потребуется начать использовать заголовки из SDK Flipper. Называется она `FURI`, где-то читал, что расшифровывается это как `FlipperUniversal Registry Implementation`. Кажется, суть уже ушла далеко от названия, но аббревеатура классная, так что её оставили. Помимо нее сразу подключим еще несколько заголовков:
 
 - `gui/gui.h` — отвечает за работу с интерфейсом.
@@ -229,7 +231,6 @@ application.fam
         return 0;
     }
 
-hello_world.c
 `UNUSED` — это макрос, определенный в `FURI`, его реализация ровно такая же, как мы использовали раньше, но выглядит в коде симпатичнее.
 
 Очереди сообщений, как я понял (могу жестоко ошибаться), на самом деле глубоко наплевать какие именно сообщения хранить. Это используется для того, чтоб вы могли использовать тот набор событий, который хотите именно вы. При создании вам нужно только указать размер очереди (сколько событий она может хранить до "исчерпания") и размер каждого из них.
@@ -268,14 +269,17 @@ hello_world.c
         return 0;
     }
 
-hello_world.c
 Если вы скомпилируете, скопируете на устройство запустите это приложение, то ваш Flipper будет вечно показывать вот такой экран, не реагируя ни на какие нажатия. Единственное, что вас спасет — это перезагрузка (влево + назад).
-![](__GHOST_URL__/content/images/2022/10/Screenshot-20221024-231150.png)Зависший флиппер
+![](assets/Screenshot-20221024-231150.png)
 Почему так происходит? Мы, очевидно, висим в бесконечном цикле, но разве нажатие кнопки "назад" не должно его прерывать?
 
 На самом деле, нет. Потому что в нашей очереди сообщений пока ничего не лежит. Мы из нее читаем, но ничего в неё не пишем. А это в случае с Flipper мы тоже должны делать сами. Разберемся как это воплотить. Но для этого нам придется сначала разобраться с GUI.
 
+> **NB** Полный код этого раздела доступен в [2_msgqueue](2_msgqueue/)
+
 ## Графический интерфейс
+
+> **NB** Полный код этого раздела доступен в [3_gui](3_gui/)
 
 Скажу честно, я не особенно сильно тут разбирался, но глобальная идея выглядит очень понятно. Создаем некоторый GUI, который инициирует нашу систему. К этому GUI привязываем view port, который говорит, куда будет рендериться наш интерфейс (очевидно, полноэкранный для нашего простейшего приложения), а дальше привязываем колбэки отрисовки и всяких поддерживаемых событий. В частности, к ним будут относиться те самые нажатия кнопок.
 
@@ -373,79 +377,15 @@ hello_world.c
         furi_message_queue_put(event_queue, input_event, FuriWaitForever);
     }
 
-На всякий случай привожу полный листинг всего текущего файла `hello_world.c`:
-
-    #include <stdio.h>
-    #include <furi.h>
-    #include <gui/gui.h>
-    #include <input/input.h>
-    #include <notification/notification_messages.h>
-    
-    static void draw_callback(Canvas* canvas, void* ctx) {
-        UNUSED(ctx);
-    
-        canvas_clear(canvas);
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str(canvas, 0, 10, "Hello World!");
-    }
-    
-    static void input_callback(InputEvent* input_event, void* ctx) {
-        // Проверяем, что контекст не нулевой
-        furi_assert(ctx);
-        FuriMessageQueue* event_queue = ctx;
-    
-        furi_message_queue_put(event_queue, input_event, FuriWaitForever);
-    }
-    
-    int32_t hello_world_app(void* p) {
-        UNUSED(p);
-    
-        // Текущее событие типа InputEvent
-        InputEvent event;
-        // Очередь событий на 8 элементов размера InputEvent
-        FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
-    
-        // Создаем новый view port
-        ViewPort* view_port = view_port_alloc();
-        // Создаем callback отрисовки, без контекста
-        view_port_draw_callback_set(view_port, draw_callback, NULL);
-        // Создаем callback нажатий на клавиши, в качестве контекста передаем
-        // нашу очередь сообщений, чтоб запихивать в неё эти события
-        view_port_input_callback_set(view_port, input_callback, event_queue);
-    
-        // Создаем GUI приложения
-        Gui* gui = furi_record_open(RECORD_GUI);
-        // Подключаем view port к GUI в полноэкранном режиме
-        gui_add_view_port(gui, view_port, GuiLayerFullscreen);
-    
-        // Бесконечный цикл обработки очереди событий
-        while(1) {
-            // Выбираем событие из очереди в переменную event (ждем бесконечно долго, если очередь пуста)
-            // и проверяем, что у нас получилось это сделать
-            furi_check(furi_message_queue_get(event_queue, &event, FuriWaitForever) == FuriStatusOk);
-    
-            // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения
-            if(event.key == InputKeyBack) {
-                break;
-            }
-        }
-    
-        // Специальная очистка памяти, занимаемой очередью
-        furi_message_queue_free(event_queue);
-    
-        // Чистим созданные объекты, связанные с интерфейсом
-        gui_remove_view_port(gui, view_port);
-        view_port_free(view_port);
-        furi_record_close(RECORD_GUI);
-    
-        return 0;
-    }
-
 Компилируем, заливаем и наслаждаемся!
-![](__GHOST_URL__/content/images/2022/10/Screenshot-20221024-234910.png)![](__GHOST_URL__/content/images/2022/10/Screenshot-20221024-234456.png)
+![](assets/Screenshot-20221024-234910.png)![](assets/Screenshot-20221024-234456.png)
 Мало того, что мы получили "Hello World!" на экране (кажется, стоило сделать отступ слева не нулевым), так еще и кнопка "назад" закрывает приложение!
 
+> **NB** Полный код этого раздела доступен в [3_gui](3_gui/)
+
 ## Таймер
+
+> **NB** Полный код этого раздела доступен в [4_time](4_timer/)
 
 На этом можно было бы закончить этот текст, но мне захотелось добавить еще два элемента: таймер и мигание светодиодом. Делаю я это не из-за любви к искусству, а чтоб показать кастомные события в очереди. Это проще всего показать именно на таймере.
 
@@ -472,7 +412,11 @@ hello_world.c
 
 И здесь возникает вопрос, а что же нам делать в этом callback? Кажется, было бы здорово так же пихать какие-то события в нашу очередь `event_queue`, чтоб потом вытаскивать их в бесконечном цикле. Но вот незадача, наша очередь умеет хранить события только одного типа — `InputEvent`. Пришла пора это исправить.
 
+> **NB** Полный код этого раздела доступен в [4_time](4_timer/)
+
 ## Кастомные события
+
+> **NB** Полный код этого раздела доступен в [5_events](5_events/)
 
 Теперь наша замечательная программа требует сразу два типа событий — нажатие на клавиши и "тикание" таймера. Реализовать это в имеющемся коде довольно просто. Логика будет следующая:
 
@@ -545,111 +489,13 @@ hello_world.c
         }
     }
 
-Как и раньше, на всякий случай приведу полный код текущего варианта:
-
-    #include <stdio.h>
-    #include <furi.h>
-    #include <gui/gui.h>
-    #include <input/input.h>
-    #include <notification/notification_messages.h>
-    
-    typedef enum {
-        EventTypeTick,
-        EventTypeInput,
-    } EventType;
-    
-    typedef struct {
-        EventType type;
-        InputEvent input;
-    } HelloWorldEvent;
-    
-    static void draw_callback(Canvas* canvas, void* ctx) {
-        UNUSED(ctx);
-    
-        canvas_clear(canvas);
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str(canvas, 0, 10, "Hello World!");
-    }
-    
-    static void input_callback(InputEvent* input_event, void* ctx) {
-        // Проверяем, что контекст не нулевой
-        furi_assert(ctx);
-        FuriMessageQueue* event_queue = ctx;
-    
-        HelloWorldEvent event = {.type = EventTypeInput, .input = *input_event};
-        furi_message_queue_put(event_queue, &event, FuriWaitForever);
-    }
-    
-    static void timer_callback(FuriMessageQueue* event_queue) {
-        // Проверяем, что контекст не нулевой
-        furi_assert(event_queue);
-    
-        HelloWorldEvent event = {.type = EventTypeTick};
-        furi_message_queue_put(event_queue, &event, 0);
-    }
-    
-    int32_t hello_world_app(void* p) {
-        UNUSED(p);
-    
-        // Текущее событие типа кастомного типа HelloWorldEvent
-        HelloWorldEvent event;
-        // Очередь событий на 8 элементов размера HelloWorldEvent
-        FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(HelloWorldEvent));
-    
-        // Создаем новый view port
-        ViewPort* view_port = view_port_alloc();
-        // Создаем callback отрисовки, без контекста
-        view_port_draw_callback_set(view_port, draw_callback, NULL);
-        // Создаем callback нажатий на клавиши, в качестве контекста передаем
-        // нашу очередь сообщений, чтоб запихивать в неё эти события
-        view_port_input_callback_set(view_port, input_callback, event_queue);
-    
-        // Создаем GUI приложения
-        Gui* gui = furi_record_open(RECORD_GUI);
-        // Подключаем view port к GUI в полноэкранном режиме
-        gui_add_view_port(gui, view_port, GuiLayerFullscreen);
-    
-        // Создаем периодический таймер с коллбэком, куда в качестве
-        // контекста будет передаваться наша очередь событий
-        FuriTimer* timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, event_queue);
-        // Запускаем таймер
-        furi_timer_start(timer, 500);
-    
-        // Бесконечный цикл обработки очереди событий
-        while(1) {
-            // Выбираем событие из очереди в переменную event (ждем бесконечно долго, если очередь пуста)
-            // и проверяем, что у нас получилось это сделать
-            furi_check(furi_message_queue_get(event_queue, &event, FuriWaitForever) == FuriStatusOk);
-    
-            // Наше событие — это нажатие кнопки
-            if(event.type == EventTypeInput) {
-                // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения
-                if(event.input.key == InputKeyBack) {
-                    break;
-                }
-                // Наше событие — это сработавший таймер
-            } else if(event.type == EventTypeTick) {
-                // Сделаем что-то по таймеру
-            }
-        }
-    
-        // Очищаем таймер
-        furi_timer_free(timer);
-    
-        // Специальная очистка памяти, занимаемой очередью
-        furi_message_queue_free(event_queue);
-    
-        // Чистим созданные объекты, связанные с интерфейсом
-        gui_remove_view_port(gui, view_port);
-        view_port_free(view_port);
-        furi_record_close(RECORD_GUI);
-    
-        return 0;
-    }
-
 Можно проверить, что получившийся код вновь компилируется и работает. Вот только по таймеру пока ничего не происходит. Исправим и это!
 
+> **NB** Полный код этого раздела доступен в [5_events](5_events/)
+
 ## Мигание светодиодом
+
+> **NB** Полный код этого раздела доступен в [6_notifications](6_notifications/)
 
 Как я понял, мигание в Flipper — это один из видов нотификации. Подключение использования нотификаций происходит тоже довольно логично:
 
@@ -671,113 +517,9 @@ hello_world.c
 
 У нас возникла магическая константа `sequence_blink_blue_100`, определяющая код нотификации, соответствующей миганию синим светодиодом. На самом деле она определена в подключенном `notification/notification_messages.h`. Там еще много всякого интересного (например, мигание красным светодиодом). Мы же остановимся для примера только на этом. Теперь каждое срабатывание таймером мы будем мигать синим светодиодом!
 
-Полный код:
-
-    #include <stdio.h>
-    #include <furi.h>
-    #include <gui/gui.h>
-    #include <input/input.h>
-    #include <notification/notification_messages.h>
-    
-    typedef enum {
-        EventTypeTick,
-        EventTypeInput,
-    } EventType;
-    
-    typedef struct {
-        EventType type;
-        InputEvent input;
-    } HelloWorldEvent;
-    
-    static void draw_callback(Canvas* canvas, void* ctx) {
-        UNUSED(ctx);
-    
-        canvas_clear(canvas);
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str(canvas, 0, 10, "Hello World!");
-    }
-    
-    static void input_callback(InputEvent* input_event, void* ctx) {
-        // Проверяем, что контекст не нулевой
-        furi_assert(ctx);
-        FuriMessageQueue* event_queue = ctx;
-    
-        HelloWorldEvent event = {.type = EventTypeInput, .input = *input_event};
-        furi_message_queue_put(event_queue, &event, FuriWaitForever);
-    }
-    
-    static void timer_callback(FuriMessageQueue* event_queue) {
-        // Проверяем, что контекст не нулевой
-        furi_assert(event_queue);
-    
-        HelloWorldEvent event = {.type = EventTypeTick};
-        furi_message_queue_put(event_queue, &event, 0);
-    }
-    
-    int32_t hello_world_app(void* p) {
-        UNUSED(p);
-    
-        // Текущее событие типа кастомного типа HelloWorldEvent
-        HelloWorldEvent event;
-        // Очередь событий на 8 элементов размера HelloWorldEvent
-        FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(HelloWorldEvent));
-    
-        // Создаем новый view port
-        ViewPort* view_port = view_port_alloc();
-        // Создаем callback отрисовки, без контекста
-        view_port_draw_callback_set(view_port, draw_callback, NULL);
-        // Создаем callback нажатий на клавиши, в качестве контекста передаем
-        // нашу очередь сообщений, чтоб запихивать в неё эти события
-        view_port_input_callback_set(view_port, input_callback, event_queue);
-    
-        // Создаем GUI приложения
-        Gui* gui = furi_record_open(RECORD_GUI);
-        // Подключаем view port к GUI в полноэкранном режиме
-        gui_add_view_port(gui, view_port, GuiLayerFullscreen);
-    
-        // Создаем периодический таймер с коллбэком, куда в качестве
-        // контекста будет передаваться наша очередь событий
-        FuriTimer* timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, event_queue);
-        // Запускаем таймер
-        furi_timer_start(timer, 500);
-    
-        // Включаем нотификации
-        NotificationApp* notifications = furi_record_open(RECORD_NOTIFICATION);
-    
-        // Бесконечный цикл обработки очереди событий
-        while(1) {
-            // Выбираем событие из очереди в переменную event (ждем бесконечно долго, если очередь пуста)
-            // и проверяем, что у нас получилось это сделать
-            furi_check(furi_message_queue_get(event_queue, &event, FuriWaitForever) == FuriStatusOk);
-    
-            // Наше событие — это нажатие кнопки
-            if(event.type == EventTypeInput) {
-                // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения
-                if(event.input.key == InputKeyBack) {
-                    break;
-                }
-                // Наше событие — это сработавший таймер
-            } else if(event.type == EventTypeTick) {
-                // Отправляем нотификацию мигания синим светодиодом
-                notification_message(notifications, &sequence_blink_blue_100);
-            }
-        }
-    
-        // Очищаем таймер
-        furi_timer_free(timer);
-    
-        // Специальная очистка памяти, занимаемой очередью
-        furi_message_queue_free(event_queue);
-    
-        // Чистим созданные объекты, связанные с интерфейсом
-        gui_remove_view_port(gui, view_port);
-        view_port_free(view_port);
-        furi_record_close(RECORD_GUI);
-    
-        // Очищаем нотификации
-        furi_record_close(RECORD_NOTIFICATION);
-    
-        return 0;
-    }
-
 Ну, и финальная демонстрация!
+
+![](assets/flipper_hello_world.mp4)
+
+> **NB** Полный код этого раздела доступен в [6_notifications](6_notifications/)
+
